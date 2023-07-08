@@ -44,7 +44,28 @@ async def on_ready():
 @bot.event
 async def on_guild_join(guild):
     logger.info(f"{guild.name}-{guild.id} has just been added.")
-    # Ask for system default channel, 
+
+    system_channel = guild.system_channel
+    if system_channel is None:
+        logger.debug(f"{guild.name} doesn't have a system channel.")
+
+    else:
+        await system_channel.send(
+            f"""
+Welcome! **{bot.user}** is here to help you and your organisation stay organised on projects and collaborate more efficiently.
+- Your system's channel is set to **{system_channel.name}**.
+- Type __/setup__ to complete setup process. This only works if user is an admin.
+- Type __/help__ to see full documentation of commands and usage patterns.
+- Type __/feedback__ followed by feedback content to make suggestions on improvements or changes to the Discord bot service.
+        """
+        )
+
+    # TODO: Send welcome message
+    # TODO: Create appropriate databases and bot setup checklist
+    # TODO: List the permissions that the bot has and what commands can trigger help
+    # TODO: Get list of guild channels and set system channel if none exists
+    # TODO: Get list of roles and which roles have admin capabilities
+    # TODO: Mention that feedback can be sent to users
 
 
 @bot.event
@@ -58,6 +79,30 @@ async def leave(ctx):
     await ctx.send("Leaving server...")
     await ctx.guild.leave()
     logger.info("Bot has left the server.")
+
+
+@bot.command()
+async def guild_welcome(ctx):
+    system_channel = ctx.guild.system_channel
+    if system_channel is None:
+        await ctx.send(
+            f"""
+{ctx.guild.name} doesn't have a system channel.
+Admin should set a channel as system channel.
+            """
+        )
+        logger.debug(f"{ctx.guild.name} doesn't have a system channel.")
+
+    else:
+        await system_channel.send(
+            f"""
+Welcome! **{bot.user}** is here to help you and your organisation stay organised on projects and collaborate more efficiently.
+- Your system's channel is set to **{system_channel.name}**.
+- Type __/setup__ to complete setup process. This only works if user is an admin.
+- Type __/help__ to see full documentation of commands and usage patterns.
+- Type __/feedback__ followed by feedback content to make suggestions on improvements or changes to the Discord bot service.
+        """
+        )
 
 
 @bot.command()
