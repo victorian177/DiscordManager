@@ -17,6 +17,9 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix="/", intents=intents)
 
+_intents = [name for name in intents]
+print(_intents)
+
 logger = logging.getLogger("discord")
 logger.setLevel(logging.DEBUG)
 logging.getLogger("discord.http").setLevel(logging.INFO)
@@ -54,7 +57,7 @@ async def on_guild_join(guild):
             f"""
 Welcome! **{bot.user}** is here to help you and your organisation stay organised on projects and collaborate more efficiently.
 - Your system's channel is set to **{system_channel.name}**.
-- Type __/setup__ to complete setup process. This only works if user is an admin.
+- Type __/guild_setup__ to complete setup process. This only works if user is an admin.
 - Type __/help__ to see full documentation of commands and usage patterns.
 - Type __/feedback__ followed by feedback content to make suggestions on improvements or changes to the Discord bot service.
         """
@@ -98,11 +101,16 @@ Admin should set a channel as system channel.
             f"""
 Welcome! **{bot.user}** is here to help you and your organisation stay organised on projects and collaborate more efficiently.
 - Your system's channel is set to **{system_channel.name}**.
-- Type __/setup__ to complete setup process. This only works if user is an admin.
+- Type __/guild_setup__ to complete setup process. This only works if user is an admin.
 - Type __/help__ to see full documentation of commands and usage patterns.
 - Type __/feedback__ followed by feedback content to make suggestions on improvements or changes to the Discord bot service.
         """
         )
+
+
+@bot.command()
+async def guild_setup(ctx):
+    ...
 
 
 @bot.command()
