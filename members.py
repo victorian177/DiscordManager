@@ -1,5 +1,6 @@
-from database import Database
 from tinydb import Query
+
+from database import Database
 
 
 class Members:
