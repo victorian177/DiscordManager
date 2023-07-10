@@ -4,24 +4,30 @@ from pathlib import Path
 from BetterJSONStorage import BetterJSONStorage
 from tinydb import Query, TinyDB, operations
 
+from schema import Schema
+
 
 class Database:
-    def __init__(self, db_name) -> None:
-        self.path = Path(f"db/{db_name}.db")
+    def __init__(self, db_name, primary_key, schema_info) -> None:
+        self.path = Path(f"{db_name}.db")
         self.primary_key = primary_key
+        self.schema = Schema(schema_info, primary_key)
 
         db = TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage)
         db.close()
 
     def get_count(self):
         with TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage) as db:
-            count = len(db)
+            print()
+            print(db.all())
+            print(f"Count: {len(db)}")
+            print()
 
-        return count
-
-    def create(self, record: dict):
-        with TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage) as db:
-            db.insert(record)
+    def create(self, input_data: dict):
+        record = self.schema.check(input_data)
+        if record is not None:
+            with TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage) as db:
+                db.insert(record)
 
     def delete(self, query):
         with TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage) as db:
@@ -29,11 +35,12 @@ class Database:
 
         return data
 
-    def modify(self, query, update_info):
-        with TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage) as db:
-            data = db.update(operations.set(update_info[0], update_info[1]), query)
-
-        return data
+    def modify(self, query, update_data):
+        record = self.schema.check(update_data)
+        if record is not None:
+            with TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage) as db:
+                for key, value in update_data.items():
+                    db.update(operations.set(key, value), query)
 
     def retrieve(self, query):
         with TinyDB(self.path, access_mode="r+", storage=BetterJSONStorage) as db:
@@ -43,8 +50,6 @@ class Database:
 
 
 if __name__ == "__main__":
-    from schema import Schema
-
     info = {
         "name": "str",
         "nickname": "str",
@@ -59,8 +64,7 @@ if __name__ == "__main__":
     }
     primary_key = "nickname"
 
-    schema = Schema(info, primary_key)
-    database = Database("test_db")
+    database = Database("test_db", primary_key, info)
 
     correct_record = {
         "name": "john",
@@ -71,16 +75,30 @@ if __name__ == "__main__":
 
     incorrect_record = {
         "name": "john",
-        "nickname": "johnny_0",
+        "nickname": "johnny_1",
         "email": "john@email.com",
         "date_joined": "01/2001",
         "song": "last last",
     }
 
-    result = schema.check(correct_record) is not None
-    print(f"A result was gotten? {result}")
+    print("Correct")
+    database.create(correct_record)
+    database.get_count()
 
-    
+    print("Incorrect")
+    database.create(incorrect_record)
+    database.get_count()
 
-    result = schema.check(incorrect_record) is not None
-    print(f"A result was gotten? {result}")
+    print("Update")
+    database.modify(
+        query=Query()["nickname"] == "johnny_0",
+        update_data={"name": "peter", "email": "peter@gmail.com"},
+    )
+    database.get_count()
+
+    print("Retrieve")
+    print(database.retrieve(query=Query()["nickname"] == "johnny_0"))
+
+    print("Delete")
+    database.delete(Query()["nickname"] == "johnny_0")
+    database.get_count()

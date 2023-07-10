@@ -14,16 +14,18 @@ class Schema:
         input_keys_set = set(input_data.keys())
         schema_keys_set = set(self.info.keys())
 
-        is_primary = self.primary_key in input_keys_set
-        is_subset = input_keys_set.issubset(schema_keys_set)
+        is_subset = input_keys_set.issubset(schema_keys_set) and len(input_keys_set) > 0
 
-        if is_primary and is_subset:
+        if is_subset:
             for k, v in input_data.items():
                 if self.info[k] == "int":
                     if v.isdigit():
                         record[k] = v
                 elif self.info[k] == "date":
                     if "/" in v:
+                        record[k] = v
+                elif self.info[k] == "email":
+                    if "@" in v:
                         record[k] = v
                 elif self.info[k] == "list":
                     record[k].append(v)
