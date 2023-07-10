@@ -15,14 +15,20 @@ class Schema:
         schema_keys_set = set(self.info.keys())
 
         is_primary = self.primary_key in input_keys_set
-        is_subset = input_keys_set.issubset(schema_keys_set) and len(input_keys_set) > 0
+        is_subset = input_keys_set.issubset(schema_keys_set)
 
-        for k, v in record.items():
-            if self.info[k] == "int":
-                ...
-            elif self.info[k] == "str":
-                ...
-            elif self.info[k] == "date":
-                ...
-            elif self.info[k] == "list":
-                ...
+        if is_primary and is_subset:
+            for k, v in record.items():
+                if self.info[k] == "int":
+                    if v.isdigit():
+                        record[k] = v
+                elif self.info[k] == "date":
+                    if "/" in v:
+                        record[k] = v
+                elif self.info[k] == "list":
+                    record[k].append(v)
+                else:
+                    record[k] = v
+
+            return record
+        return
