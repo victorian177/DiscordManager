@@ -18,7 +18,7 @@ class Schema:
         is_subset = input_keys_set.issubset(schema_keys_set)
 
         if is_primary and is_subset:
-            for k, v in record.items():
+            for k, v in input_data.items():
                 if self.info[k] == "int":
                     if v.isdigit():
                         record[k] = v

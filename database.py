@@ -6,9 +6,7 @@ from tinydb import Query, TinyDB, operations
 
 
 class Database:
-    def __init__(
-        self, db_name, primary_key, schema: OrderedDict, checklist: list = []
-    ) -> None:
+    def __init__(self, db_name) -> None:
         self.path = Path(f"db/{db_name}.db")
         self.primary_key = primary_key
 
@@ -45,7 +43,9 @@ class Database:
 
 
 if __name__ == "__main__":
-    schema = {
+    from schema import Schema
+
+    info = {
         "name": "str",
         "nickname": "str",
         "specialisation": "str",
@@ -58,29 +58,29 @@ if __name__ == "__main__":
         "projects_undertaking": "list",
     }
     primary_key = "nickname"
-    database = Database("test_db", primary_key=primary_key, schema=schema)
 
-    for i in range(5):
-        database.create(
-            record={
-                "name": "john",
-                "nickname": f"johnny_{i}",
-                "email": "john@email.com",
-                "date_joined": "01/2001",
-            }
-        )
+    schema = Schema(info, primary_key)
+    database = Database("test_db")
 
-    print(f"Created {database.get_count()} records.")
+    correct_record = {
+        "name": "john",
+        "nickname": "johnny_0",
+        "email": "john@email.com",
+        "date_joined": "01/2001",
+    }
 
-    User = Query()
+    incorrect_record = {
+        "name": "john",
+        "nickname": "johnny_0",
+        "email": "john@email.com",
+        "date_joined": "01/2001",
+        "song": "last last",
+    }
 
-    del_query = User.nickname == "johnny_4"
-    print(f"Deleted: {database.delete(del_query)}")
-    print(f"Count is now {database.get_count()}.")
+    result = schema.check(correct_record) is not None
+    print(f"A result was gotten? {result}")
 
-    mod_query = User.nickname == "johnny_0"
-    update_info = ("date_joined", "99/9999")
-    print(f"Modified: {database.modify(mod_query, update_info)}")
+    
 
-    ret_query = User.nickname == "johnny_0"
-    print(f"Retrieved: {database.retrieve(ret_query)}")
+    result = schema.check(incorrect_record) is not None
+    print(f"A result was gotten? {result}")
