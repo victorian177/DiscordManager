@@ -1,124 +1,123 @@
-import logging
-import logging.handlers
+# This example requires the 'members' privileged intents
 import os
+import random
 
-import discord
-from discord.ext import commands
+import nextcord
 from dotenv import load_dotenv
+from nextcord.ext import commands
 
 load_dotenv("discord.env")
 
 TOKEN = os.getenv("TOKEN")
 
+description = """An example bot to showcase the nextcord.ext.commands extension
+module.
 
-intents = discord.Intents.default()
+There are a number of utility commands being showcased here."""
+
+intents = nextcord.Intents.default()
 intents.members = True
 intents.message_content = True
 
-bot = commands.Bot(command_prefix="/", intents=intents)
 
-_intents = [name for name in intents]
-print(_intents)
-
-logger = logging.getLogger("discord")
-logger.setLevel(logging.DEBUG)
-logging.getLogger("discord.http").setLevel(logging.INFO)
-
-handler = logging.handlers.RotatingFileHandler(
-    filename="discord.log",
-    encoding="utf-8",
-    maxBytes=32 * 1024 * 1024,  # 32 MiB
-    backupCount=5,  # Rotate through 5 files
-)
-dt_fmt = "%Y-%m-%d %H:%M:%S"
-formatter = logging.Formatter(
-    "[{asctime}] [{levelname:<8}] {name}: {message}", dt_fmt, style="{"
-)
-handler.setFormatter(formatter)
-logger.addHandler(handler)
-
-
-# Events
-@bot.event
-async def on_ready():
-    logger.info(f"Logged in as {bot.user} (ID: {bot.user.id}).")
-
-
-@bot.event
-async def on_guild_join(guild):
-    logger.info(f"{guild.name}-{guild.id} has just been added.")
-
-    system_channel = guild.system_channel
-    if system_channel is None:
-        logger.debug(f"{guild.name} doesn't have a system channel.")
-
-    else:
-        await system_channel.send(
-            f"""
-Welcome! **{bot.user}** is here to help you and your organisation stay organised on projects and collaborate more efficiently.
-- Your system's channel is set to **{system_channel.name}**.
-- Type __/guild_setup__ to complete setup process. This only works if user is an admin.
-- Type __/help__ to see full documentation of commands and usage patterns.
-- Type __/feedback__ followed by feedback content to make suggestions on improvements or changes to the Discord bot service.
-        """
+class Pet(nextcord.ui.Modal):
+    def __init__(self):
+        super().__init__(
+            "Your pet",
+            timeout=5 * 60,  # 5 minutes
         )
 
-    # TODO: Send welcome message
-    # TODO: Create appropriate databases and bot setup checklist
-    # TODO: List the permissions that the bot has and what commands can trigger help
-    # TODO: Get list of guild channels and set system channel if none exists
-    # TODO: Get list of roles and which roles have admin capabilities
-    # TODO: Mention that feedback can be sent to users
+        self.name = nextcord.ui.TextInput(
+            label="Your pet's name",
+            min_length=2,
+            max_length=50,
+        )
+        self.add_item(self.name)
+
+        self.description = nextcord.ui.TextInput(
+            label="Description",
+            style=nextcord.TextInputStyle.paragraph,
+            placeholder="Information that can help us recognise your pet",
+            required=False,
+            max_length=1800,
+        )
+        self.add_item(self.description)
+
+    async def callback(self, interaction: nextcord.Interaction) -> None:
+        response = (
+            f"{interaction.user.mention}'s favourite pet's name is {self.name.value}."
+        )
+        if self.description.value != "":
+            response += f"\nTheir pet can be recognized by this information:\n{self.description.value}"
+        await interaction.send(response)
+
+
+bot = commands.Bot(command_prefix="/", description=description, intents=intents)
 
 
 @bot.event
-async def on_member_join(member):
-    welcome_message = f"Welcome to the {member.guild}"
-
-
-# Commands
-@bot.command()
-async def leave(ctx):
-    await ctx.send("Leaving server...")
-    await ctx.guild.leave()
-    logger.info("Bot has left the server.")
+async def on_ready():
+    print(f"Logged in as {bot.user} (ID: {bot.user.id})")
 
 
 @bot.command()
-async def guild_welcome(ctx):
-    system_channel = ctx.guild.system_channel
-    if system_channel is None:
-        await ctx.send(
-            f"""
-{ctx.guild.name} doesn't have a system channel.
-Admin should set a channel as system channel.
-            """
-        )
-        logger.debug(f"{ctx.guild.name} doesn't have a system channel.")
-
-    else:
-        await system_channel.send(
-            f"""
-Welcome! **{bot.user}** is here to help you and your organisation stay organised on projects and collaborate more efficiently.
-- Your system's channel is set to **{system_channel.name}**.
-- Type __/guild_setup__ to complete setup process. This only works if user is an admin.
-- Type __/help__ to see full documentation of commands and usage patterns.
-- Type __/feedback__ followed by feedback content to make suggestions on improvements or changes to the Discord bot service.
-        """
-        )
+async def add(ctx, left: int, right: int):
+    """Adds two numbers together."""
+    await ctx.send(left + right)
 
 
 @bot.command()
-async def guild_setup(ctx):
-    ...
+async def roll(ctx, dice: str):
+    """Rolls a dice in NdN format."""
+    try:
+        rolls, limit = map(int, dice.split("d"))
+    except ValueError:
+        await ctx.send("Format has to be in NdN!")
+        return
+
+    result = ", ".join(str(random.randint(1, limit)) for _ in range(rolls))
+    await ctx.send(result)
+
+
+@bot.command(description="For when you wanna settle the score some other way")
+async def choose(ctx, *choices: str):
+    """Chooses between multiple choices."""
+    await ctx.send(random.choice(choices))
 
 
 @bot.command()
-async def set_system_channel(ctx, channel: discord.TextChannel):
-    admin_role = discord.utils.get(ctx.guild.roles, name="admin")
-    if admin_role in ctx.author.roles:
-        await ctx.guild.edit(system_channel=channel)
-        await ctx.send(f"System channel set to {channel.mention}")
+async def repeat(ctx, times: int, content="repeating..."):
+    """Repeats a message multiple times."""
+    for _ in range(times):
+        await ctx.send(content)
+
+
+@bot.command()
+async def joined(ctx, member: nextcord.Member):
+    """Says when a member joined."""
+    await ctx.send(f"{member.name} joined in {member.joined_at}")
+
+
+@bot.group()
+async def cool(ctx):
+    """Says if a user is cool.
+
+    In reality this just checks if a subcommand is being invoked.
+    """
+    if ctx.invoked_subcommand is None:
+        await ctx.send(f"No, {ctx.subcommand_passed} is not cool")
+
+
+@cool.command(name="bot")
+async def _bot(ctx):
+    """Is the bot cool?"""
+    await ctx.send("Yes, the bot is cool.")
+
+
+@bot.command()
+async def send(interaction: nextcord.Interaction):
+    modal = Pet()
+    await interaction.response.send_modal(modal)
 
 
 bot.run(TOKEN)
