@@ -5,6 +5,8 @@ import nextcord
 from dotenv import load_dotenv
 from nextcord.ext import commands, tasks
 
+from messages import *
+
 load_dotenv("nextcord.env")
 
 TOKEN = os.getenv("TOKEN")
@@ -33,7 +35,20 @@ async def on_ready():
 
 @bot.event
 async def on_guild_join(guild):
-    ...
+    system_channel = guild.system_channel
+
+    if system_channel is not None:
+        logger.info(
+            f"{bot.user.name} has joined {guild.name} and has a system channel."
+        )
+        await system_channel.send(ON_GUILD_JOINED)
+    else:
+        if guild.text_channels:
+            logger.info(
+                f"{bot.user.name} has joined {guild.name} and does not a system channel."
+            )
+            await guild.text_channels[0].send(NO_SYSTEM_CHANNEL)
+            await guild.text_channels[0].send(ON_GUILD_JOINED)
 
 
 @bot.event
@@ -42,6 +57,11 @@ async def on_member_join(member):
 
 
 # COMMANDS
+@bot.slash_command()
+async def test(ctx):
+    await ctx.send("Testing...")
+
+
 # Project
 @bot.slash_command()
 async def project_draft(ctx):
@@ -90,14 +110,14 @@ async def feedback(ctx):
     ...
 
 
-# Reminders
+# REMINDERS
 @tasks.loop()
 async def project_reminder():
     ...
 
 
 @tasks.loop()
-async def setup_reminder():
+async def member_setup_reminder():
     ...
 
 
