@@ -4,9 +4,10 @@ import os
 import nextcord
 from dotenv import load_dotenv
 from nextcord.ext import commands, tasks
-from textform import TextForm
 
+from dropdown import Dropdown
 from messages import *
+from textform import TextForm
 
 load_dotenv("nextcord.env")
 
@@ -72,13 +73,8 @@ async def on_member_join(member: nextcord.Member):
 
 # COMMANDS
 @bot.slash_command()
-async def test(interaction: nextcord.Interaction):
-    form_inputs = [
-        {"label": "Project Name", "placeholder": "What is the project's name?"},
-        {"label": "Project Draft", "placeholder": "What is the project's draft?"},
-    ]
-    tf = TextForm(name="Project Draft", form_inputs=form_inputs)
-    await interaction.response.send_modal(tf)
+async def test(ctx):
+    ...
 
 
 # Project
