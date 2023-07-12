@@ -1,0 +1,1 @@
+{"GUILD_WELCOME_MESSAGE": ""}
