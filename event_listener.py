@@ -52,6 +52,13 @@ async def on_guild_join(guild: nextcord.Guild):
             await guild.text_channels[0].send(NO_SYSTEM_CHANNEL)
             await guild.text_channels[0].send(ON_GUILD_JOINED)
 
+    for member in guild.members:
+        print(f"Member: {member.name}")
+        if member.dm_channel is None and member.name != bot.user.name:
+            channel = await member.create_dm()
+            dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
+            await channel.send(dm_message)
+
     # TODO: Create Guild entity for managing guild specific databases
 
 
@@ -62,7 +69,7 @@ async def on_member_join(member: nextcord.Member):
     if system_channel is not None:
         await system_channel.send(ON_MEMBER_JOINED_GENERAL_MESSAGE)
 
-    channel = member.create_dm()
+    channel = await member.create_dm()
     dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
     await channel.send(dm_message)
 

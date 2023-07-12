@@ -5,7 +5,7 @@ NO_SYSTEM_CHANNEL = """Please set system channel"""
 
 ON_MEMBER_JOINED_GENERAL_MESSAGE = """Welcome"""
 
-ON_MEMBER_JOINED_PRIVATE_MESSAGE = """Hi, I am {}. YOu can interact with me here."""
+ON_MEMBER_JOINED_PRIVATE_MESSAGE = """Hi, I am {}. You can interact with me here."""
 
 # Help
 HELP = """"""
