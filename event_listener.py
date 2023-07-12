@@ -34,7 +34,7 @@ async def on_ready():
 
 
 @bot.event
-async def on_guild_join(guild):
+async def on_guild_join(guild: nextcord.Guild):
     system_channel = guild.system_channel
 
     if system_channel is not None:
@@ -50,16 +50,29 @@ async def on_guild_join(guild):
             await guild.text_channels[0].send(NO_SYSTEM_CHANNEL)
             await guild.text_channels[0].send(ON_GUILD_JOINED)
 
+    # TODO: Create Guild entity for managing guild specific databases
+
 
 @bot.event
-async def on_member_join(member):
-    ...
+async def on_member_join(member: nextcord.Member):
+    guild = member.guild
+    system_channel = guild.system_channel
+    if system_channel is not None:
+        await system_channel.send(ON_MEMBER_JOINED_GENERAL_MESSAGE)
+
+    channel = member.create_dm()
+    dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
+    await channel.send(dm_message)
+
+    # TODO: Unhighlight the code below when member registration form is complete
+    # member_info_link = os.getenv("MEMBER_INFO_LINK")
+    # await channel.send(member_info_link)
 
 
 # COMMANDS
 @bot.slash_command()
 async def test(ctx):
-    await ctx.send("Testing...")
+    await ctx.send("https://github.com/")
 
 
 # Project

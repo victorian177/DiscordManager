@@ -3,7 +3,9 @@ ON_GUILD_JOINED = """Guild joined"""
 
 NO_SYSTEM_CHANNEL = """Please set system channel"""
 
-ON_MEMBER_JOINED = """Welcome"""
+ON_MEMBER_JOINED_GENERAL_MESSAGE = """Welcome"""
+
+ON_MEMBER_JOINED_PRIVATE_MESSAGE = """Hi, I am {}. YOu can interact with me here."""
 
 # Help
 HELP = """"""
@@ -16,5 +18,3 @@ HARDWARE_WORKFLOW_TEMPLATE = """"""
 SOFTWARE_PROJECT_TEMPLATE = """"""
 
 SOFTWARE_WORKFLOW_TEMPLATE = """"""
-
-link = "https://discord.com/api/oauth2/authorize?client_id=1123604895300329502&permissions=8&scope=bot%20applications.commands"
