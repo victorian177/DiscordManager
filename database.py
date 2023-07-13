@@ -14,11 +14,11 @@ class Database:
         db_filepath: The path to the database file.
     """
 
-    def __init__(self, db_name, db_filepath) -> None:
+    def __init__(self, db_name, db_filepath: Path) -> None:
         self.name = db_name
         self._filepath = db_filepath
 
-        path = Path(f"{self._filepath}/{self.name}.db")
+        path = self._filepath / f"{self.name}.db"
         self.db = TinyDB(path, access_mode="r+", storage=BetterJSONStorage)
 
     def create(self, data):

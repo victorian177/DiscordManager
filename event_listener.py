@@ -8,6 +8,7 @@ from nextcord.ext import commands, tasks
 from dropdown import Dropdown
 from messages import *
 from textform import TextForm
+from guild_databases import GuildDatabases
 
 load_dotenv("nextcord.env")
 
@@ -33,6 +34,8 @@ logger.addHandler(handler)
 @bot.event
 async def on_ready():
     logger.info(f"Logged in as {bot.user.name}#{bot.user.id}")
+    for g in bot.guilds:
+        _ = GuildDatabases(g.name)
 
 
 @bot.event
@@ -59,7 +62,7 @@ async def on_guild_join(guild: nextcord.Guild):
             dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
             await channel.send(dm_message)
 
-    # TODO: Create Guild entity for managing guild specific databases
+    _ = GuildDatabases(guild.name)
 
 
 @bot.event
