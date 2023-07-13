@@ -204,15 +204,15 @@ async def member_register(interaction: nextcord.Interaction):
 #     ...
 
 
-# Extras
-@bot.slash_command()
-async def template(ctx):
-    ...
+# # Extras
+# @bot.slash_command()
+# async def template(ctx):
+#     ...
 
 
-@bot.slash_command()
-async def help(ctx):
-    ...
+# @bot.slash_command()
+# async def help(ctx):
+#     ...
 
 
 @bot.slash_command()
