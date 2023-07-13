@@ -133,7 +133,9 @@ async def on_member_join(member: nextcord.Member):
 
 
 # Project
-@bot.slash_command()
+@bot.slash_command(
+    description="Record your project idea. It would get reviewed and it could get implemented."
+)
 async def project_draft(interaction: nextcord.Interaction):
     event = Event()
 
@@ -168,7 +170,9 @@ async def project_draft(interaction: nextcord.Interaction):
     print(guild_db.op_package("project_drafts", "retrieve", data))
 
 
-@bot.slash_command()
+@bot.slash_command(
+    description="Creates a project. Can only be done a member with admin access."
+)
 async def project(interaction: nextcord.Interaction):
     # role = nextcord.utils.get(interaction.guild.roles, name="Role Name")
 
@@ -193,7 +197,7 @@ async def project(interaction: nextcord.Interaction):
 
 
 # Members
-@bot.slash_command()
+@bot.slash_command(description="Resends member registration link to user.")
 async def member_register(interaction: nextcord.Interaction):
     member_info_link = os.getenv("MEMBER_INFO_LINK")
     await interaction.user.dm_channel.send(member_info_link, view=View())
@@ -215,7 +219,9 @@ async def member_register(interaction: nextcord.Interaction):
 #     ...
 
 
-@bot.slash_command()
+@bot.slash_command(
+    description="Record any improvements you wil like to be seen in upcoming versions."
+)
 async def feedback(interaction: nextcord.Interaction):
     event = Event()
 
@@ -247,15 +253,15 @@ async def feedback(interaction: nextcord.Interaction):
     print(guild_db.op_package("feedback", "retrieve", data))
 
 
-# REMINDERS
-@tasks.loop()
-async def project_reminder():
-    ...
+# # REMINDERS
+# @tasks.loop()
+# async def project_reminder():
+#     ...
 
 
-@tasks.loop()
-async def member_setup_reminder():
-    ...
+# @tasks.loop()
+# async def member_setup_reminder():
+#     ...
 
 
 bot.run(TOKEN)
