@@ -14,7 +14,7 @@ from textform import TextForm
 load_dotenv("nextcord.env")
 
 TOKEN = os.getenv("TOKEN")
-TESTING_GUILD_ID = 1124338606140563629
+TESTING_GUILD_ID = os.getenv("TESTING_GUILD_ID")
 
 intents = nextcord.Intents.default()
 intents.members = True
