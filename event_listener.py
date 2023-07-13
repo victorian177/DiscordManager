@@ -124,12 +124,12 @@ async def on_member_join(member: nextcord.Member):
 
 
 # COMMANDS
-@bot.slash_command()
-async def test(interaction: nextcord.Interaction):
-    dd = Dropdown("Hello, world!", options_list=["Python", "Java"], event=Event())
-    await interaction.send(view=dd)
-    await dd.event.wait()
-    print(dd.selected)
+# @bot.slash_command()
+# async def test(interaction: nextcord.Interaction):
+#     dd = Dropdown("Hello, world!", options_list=["Python", "Java"], event=Event())
+#     await interaction.send(view=dd)
+#     await dd.event.wait()
+#     print(dd.selected)
 
 
 # Project
@@ -187,9 +187,9 @@ async def project(interaction: nextcord.Interaction):
     print(drafts_dropdown.selected)
 
 
-@bot.slash_command()
-async def project_info(ctx):
-    ...
+# @bot.slash_command()
+# async def project_info(ctx):
+#     ...
 
 
 # Members
@@ -199,9 +199,9 @@ async def member_register(interaction: nextcord.Interaction):
     await interaction.user.dm_channel.send(member_info_link, view=View())
 
 
-@bot.slash_command()
-async def member_info(ctx):
-    ...
+# @bot.slash_command()
+# async def member_info(ctx):
+#     ...
 
 
 # Extras
