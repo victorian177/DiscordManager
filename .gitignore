@@ -1,1 +1,8 @@
+# Folders
+__pycache__
+db
+
+# Files
+.gitignore
 nextcord.env
+nextcord.log
