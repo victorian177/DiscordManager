@@ -47,7 +47,7 @@ class FormButton(nextcord.ui.Button):
 
     async def callback(self, interaction: Interaction):
         # Here the get_response function gets called
-        print("Testing...")
+
         return await super().callback(interaction)
 
 
@@ -89,7 +89,7 @@ async def on_guild_join(guild: nextcord.Guild):
 
         member_info_link = os.getenv("MEMBER_INFO_LINK")
 
-        role_names = [""]
+        role_names = ["Admin", "Member"]
         for role_name in role_names:
             role = nextcord.utils.get(guild.roles, name=role_name)
             if not role:
@@ -103,9 +103,14 @@ async def on_guild_join(guild: nextcord.Guild):
                     await channel.send(dm_message)
 
                 data = Query().name == member.name
-                if guild_db.op_package(guild.name, "retrieve", data) is None:
+                if not guild_db.op_package(guild.name, "retrieve", data):
                     pending_members.append(member.name)
                     await member.dm_channel.send(member_info_link, view=View())
+
+                linear_workspace_link = os.getenv("LINEAR_WORKSPACE_LINK")
+                await member.dm_channel.send(
+                    "Linear workspace", view=linear_workspace_link
+                )
 
 
 @bot.event
@@ -121,6 +126,9 @@ async def on_member_join(member: nextcord.Member):
 
     member_info_link = os.getenv("MEMBER_INFO_LINK")
     await channel.send(member_info_link, view=View())
+
+    linear_workspace_link = os.getenv("LINEAR_WORKSPACE_LINK")
+    await channel.send(linear_workspace_link)
 
 
 # COMMANDS
@@ -163,17 +171,11 @@ async def project_draft(interaction: nextcord.Interaction):
     data["draft"] = draft.values["Project Draft"]
     guild_db.op_package("project_drafts", "create", data)
 
-    data = {}
-    data["query"] = Query().username == interaction.user.name
-    data["retrieve_info"] = None
-    data["unique"] = True
-    print(guild_db.op_package("project_drafts", "retrieve", data))
-
 
 @bot.slash_command(
     description="Creates a project. Can only be done a member with admin access."
 )
-async def project(interaction: nextcord.Interaction):
+async def project_create(interaction: nextcord.Interaction):
     # role = nextcord.utils.get(interaction.guild.roles, name="Role Name")
 
     data = {}
@@ -188,7 +190,69 @@ async def project(interaction: nextcord.Interaction):
     )
     await interaction.send(view=drafts_dropdown)
     await drafts_dropdown.event.wait()
-    print(drafts_dropdown.selected)
+
+    event = Event()
+
+    if drafts_dropdown.selected == "Create new project...":
+        form_inputs = [
+            {"label": "Project Title", "placeholder": None, "short": True},
+            {"label": "Project Draft", "placeholder": None, "short": False},
+            {
+                "label": "Teams",
+                "placeholder": "Enter project team names separated by ', '.",
+                "short": False,
+            },
+        ]
+        project_form = TextForm(
+            "Project Create", form_inputs, "Project successfully created!"
+        )
+    else:
+        form_inputs = [
+            {
+                "label": "Teams",
+                "placeholder": "Enter project team names separated by ', '.",
+                "short": False,
+            }
+        ]
+        project_form = TextForm(
+            "Project Create", form_inputs, "Project successfully created!"
+        )
+
+        await interaction.response.send_modal(project_form)
+
+        async def on_callback(interaction):
+            await project_form._callback(interaction)
+            event.set()
+
+        project_form.callback = on_callback
+        await event.wait()
+
+        data = {}
+        data["username"] = interaction.user.name
+        data["title"] = project_form.values["Project Title"]
+        data["draft"] = project_form.values["Project Draft"]
+        data["teams"] = project_form.values["Teams"]
+        guild_db.op_package("projects", "create", data)
+
+        guild = interaction.user.guild
+        await guild.create_category(data["title"])
+        team_list = ["general"]
+        team_list.extend(data["teams"].split())
+        overwrites = {
+            guild.default_role: nextcord.PermissionOverwrite(read_messages=False),
+            guild.me: nextcord.PermissionOverwrite(read_messages=True),
+        }
+        for t in team_list:
+            channel = await guild.create_text_channel(
+                t,
+                overwrites=overwrites,
+                category=data["title"],
+                reason=f"{t} for {data['title']}",
+            )
+            if t == "general":
+                channel.send("This is the project-wide channel.")
+            else:
+                channel.send("Add members that would be part of the this team.")
 
 
 # @bot.slash_command()
@@ -245,12 +309,6 @@ async def feedback(interaction: nextcord.Interaction):
     data["username"] = interaction.user.name
     data["feedback"] = fdbck.values["Feedback"]
     guild_db.op_package("feedback", "create", data)
-
-    data = {}
-    data["query"] = Query().username == interaction.user.name
-    data["retrieve_info"] = None
-    data["unique"] = True
-    print(guild_db.op_package("feedback", "retrieve", data))
 
 
 # # REMINDERS
