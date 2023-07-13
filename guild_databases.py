@@ -21,3 +21,4 @@ class GuildDatabases:
         if not os.path.exists(self.filepath / "members"):
             self.members = Database(db_name="members", db_filepath=self.filepath)
             self.projects = Database(db_name="projects", db_filepath=self.filepath)
+            self.feedback = Database(db_name="feedback", db_filepath=self.filepath)

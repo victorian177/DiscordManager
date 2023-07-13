@@ -1,14 +1,15 @@
 import logging
 import os
+from asyncio import Event
 
 import nextcord
 from dotenv import load_dotenv
 from nextcord.ext import commands, tasks
 
 from dropdown import Dropdown
+from guild_databases import GuildDatabases
 from messages import *
 from textform import TextForm
-from guild_databases import GuildDatabases
 
 load_dotenv("nextcord.env")
 
@@ -132,9 +133,20 @@ async def help(ctx):
 
 @bot.slash_command()
 async def feedback(interaction: nextcord.Interaction):
+    event = Event()
+
     form_inputs = [{"label": "Feedback", "placeholder": None}]
     fdbck = TextForm(name="Feedback", form_inputs=form_inputs, response="Feedback: {}")
     await interaction.response.send_modal(fdbck)
+
+    async def on_callback(interaction):
+        await fdbck._callback(interaction)
+        event.set()
+
+    fdbck.callback = on_callback
+
+    await event.wait()
+    print(fdbck.done)
 
 
 # REMINDERS
