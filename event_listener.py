@@ -13,6 +13,7 @@ from dropdown import Dropdown
 from guild_databases import GuildDatabases
 from messages import *
 from textform import TextForm
+from asyncio import Event
 
 load_dotenv("nextcord.env")
 
