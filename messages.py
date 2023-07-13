@@ -1,9 +1,10 @@
 # Join events
-ON_GUILD_JOINED = """Guild joined"""
+ON_GUILD_JOINED = """{}  has been added to your server. 
+{}, (a Discord bot), integrates with {} to provide collaboration and project management for small tech companies."""
 
-NO_SYSTEM_CHANNEL = """Please set system channel"""
+NO_SYSTEM_CHANNEL = """Please set system channel as this is where {} would be sending server-wide announcements."""
 
-ON_MEMBER_JOINED_GENERAL_MESSAGE = """Welcome"""
+ON_MEMBER_JOINED_GENERAL_MESSAGE = """Welcome to {}."""
 
 ON_MEMBER_JOINED_PRIVATE_MESSAGE = """Hi, I am {}. You can interact with me here."""
 
