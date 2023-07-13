@@ -10,9 +10,10 @@ from database import Database
 class GuildDatabases:
     DB_FILENAMES = ["members", "projects", "member_projects", "feedback"]
 
-    def __init__(self, name) -> None:
+    def __init__(self, name, pending_members: list = None) -> None:
         self.filepath = Path("db")
         self.name = name
+        self.pending_members = pending_members
 
         if not os.path.exists(self.filepath):
             os.mkdir(self.filepath)
