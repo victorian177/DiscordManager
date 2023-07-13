@@ -42,7 +42,7 @@ class Database:
         for k, v in modify_info.items():
             self.db.update(operations.set(k, v), query)
 
-    def retrieve(self, query, retrieve_info: list = [], unique: bool = True):
+    def retrieve(self, query=None, retrieve_info: list = [], unique: bool = True):
         """Retrieves a record from the database.
 
         Args:
@@ -53,10 +53,13 @@ class Database:
         Returns:
             A dictionary or list of dictionaries of the record(s) to be retrieved.
         """
-        if unique:
-            retrieve_data = [self.db.get(query)]
+        if query is not None:
+            if unique:
+                retrieve_data = [self.db.get(query)]
+            else:
+                retrieve_data = self.db.search(query)
         else:
-            retrieve_data = self.db.search(query)
+            retrieve_data = self.db.all()
 
         if retrieve_info:
             retrieve_data = [

@@ -10,10 +10,15 @@ class TextForm(nextcord.ui.Modal):
         self.values = {}
 
         for f in self.form_inputs:
+            style = (
+                nextcord.TextInputStyle.short
+                if f["short"]
+                else nextcord.TextInputStyle.paragraph
+            )
             self.items[f["label"]] = nextcord.ui.TextInput(
                 label=f["label"],
                 placeholder=f["placeholder"],
-                style=nextcord.TextInputStyle.paragraph,
+                style=style,
                 required=False,
             )
             self.add_item(self.items[f["label"]])
@@ -22,4 +27,4 @@ class TextForm(nextcord.ui.Modal):
         for f in self.form_inputs:
             self.values[f["label"]] = self.items[f["label"]].value
 
-        await interaction.user.dm_channel.send(self.response)
+        await interaction.response.send_message(self.response)

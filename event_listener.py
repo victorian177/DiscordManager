@@ -4,11 +4,9 @@ from asyncio import Event
 
 import nextcord
 from dotenv import load_dotenv
-from nextcord.emoji import Emoji
 from nextcord.enums import ButtonStyle
 from nextcord.ext import commands, tasks
 from nextcord.interactions import Interaction
-from nextcord.partial_emoji import PartialEmoji
 from tinydb import Query
 
 from dropdown import Dropdown
@@ -91,6 +89,12 @@ async def on_guild_join(guild: nextcord.Guild):
 
         member_info_link = os.getenv("MEMBER_INFO_LINK")
 
+        role_names = [""]
+        for role_name in role_names:
+            role = nextcord.utils.get(guild.roles, name=role_name)
+            if not role:
+                await guild.create_role(name=role_name)
+
         for member in guild.members:
             if member.name != bot.user.name:
                 if member.dm_channel is None:
@@ -121,8 +125,11 @@ async def on_member_join(member: nextcord.Member):
 
 # COMMANDS
 @bot.slash_command()
-async def test(ctx):
-    ...
+async def test(interaction: nextcord.Interaction):
+    dd = Dropdown("Hello, world!", options_list=["Python", "Java"], event=Event())
+    await interaction.send(view=dd)
+    await dd.event.wait()
+    print(dd.selected)
 
 
 # Project
@@ -130,7 +137,10 @@ async def test(ctx):
 async def project_draft(interaction: nextcord.Interaction):
     event = Event()
 
-    form_inputs = [{"label": "Project Draft", "placeholder": None}]
+    form_inputs = [
+        {"label": "Project Title", "placeholder": None, "short": True},
+        {"label": "Project Draft", "placeholder": None, "short": False},
+    ]
     draft = TextForm(
         name="Project Draft",
         form_inputs=form_inputs,
@@ -147,6 +157,7 @@ async def project_draft(interaction: nextcord.Interaction):
 
     data = {}
     data["username"] = interaction.user.name
+    data["title"] = draft.values["Project Title"]
     data["draft"] = draft.values["Project Draft"]
     guild_db.op_package("project_drafts", "create", data)
 
@@ -158,17 +169,26 @@ async def project_draft(interaction: nextcord.Interaction):
 
 
 @bot.slash_command()
-async def project(ctx):
-    ...
+async def project(interaction: nextcord.Interaction):
+    # role = nextcord.utils.get(interaction.guild.roles, name="Role Name")
+
+    data = {}
+    data["query"] = None
+    data["retrieve_info"] = ["title"]
+    data["unique"] = False
+    retrieve_data = guild_db.op_package("project_drafts", "retrieve", data)
+    options = [v["title"] for v in retrieve_data]
+    options.append("Create new project...")
+    drafts_dropdown = Dropdown(
+        placeholder="Select from drafts...", options_list=options
+    )
+    await interaction.send(view=drafts_dropdown)
+    await drafts_dropdown.event.wait()
+    print(drafts_dropdown.selected)
 
 
 @bot.slash_command()
 async def project_info(ctx):
-    ...
-
-
-@bot.slash_command()
-async def project_report(ctx):
     ...
 
 
@@ -199,12 +219,13 @@ async def help(ctx):
 async def feedback(interaction: nextcord.Interaction):
     event = Event()
 
-    form_inputs = [{"label": "Feedback", "placeholder": None}]
+    form_inputs = [{"label": "Feedback", "placeholder": None, "short": False}]
     fdbck = TextForm(
         name="Feedback",
         form_inputs=form_inputs,
         response="Your feedback has been taken!",
     )
+
     await interaction.response.send_modal(fdbck)
 
     async def on_callback(interaction):
