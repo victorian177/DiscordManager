@@ -30,5 +30,16 @@ class GuildDatabases:
                     db_filepath=self.filepath,
                 )
 
-if __name__ == "__main__":
-    gdb = GuildDatabases("Test Server")
+    def op_package(self, db_name, op_name, data):
+        retrieve_data = None
+
+        if op_name == "create":
+            self.dbs[db_name].create(*data)
+        elif op_name == "modify":
+            self.dbs[db_name].modify(*data)
+        elif op_name == "retrieve":
+            retrieve_data = self.dbs[db_name].retrieve(*data)
+        elif op_name == "delete":
+            self.dbs[db_name].delete(*data)
+
+        return retrieve_data
