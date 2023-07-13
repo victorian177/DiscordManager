@@ -22,4 +22,4 @@ class TextForm(nextcord.ui.Modal):
         for f in self.form_inputs:
             self.values[f["label"]] = self.items[f["label"]].value
 
-        await interaction.send(self.response)
+        await interaction.user.dm_channel.send(self.response)

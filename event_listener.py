@@ -107,7 +107,6 @@ async def on_member_join(member: nextcord.Member):
     dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
     await channel.send(dm_message)
 
-    # TODO: Unhighlight the code below when member registration form is complete
     member_info_link = os.getenv("MEMBER_INFO_LINK")
     await channel.send(member_info_link, view=View())
 
@@ -170,8 +169,9 @@ async def project_report(ctx):
 
 # Members
 @bot.slash_command()
-async def member_register(ctx):
-    ...
+async def member_register(interaction: nextcord.Interaction):
+    member_info_link = os.getenv("MEMBER_INFO_LINK")
+    await interaction.user.dm_channel.send(member_info_link, view=View())
 
 
 @bot.slash_command()
