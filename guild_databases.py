@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Dict
 
 from tinydb import Query
 
@@ -20,7 +21,7 @@ class GuildDatabases:
         if not os.path.exists(self.filepath):
             os.mkdir(self.filepath)
 
-        self.dbs = {}
+        self.dbs: Dict[str, Database] = {}
 
         for filename in self.DB_FILENAMES:
             file = f"{filename}.db"

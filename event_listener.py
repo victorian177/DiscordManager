@@ -136,7 +136,11 @@ async def feedback(interaction: nextcord.Interaction):
     event = Event()
 
     form_inputs = [{"label": "Feedback", "placeholder": None}]
-    fdbck = TextForm(name="Feedback", form_inputs=form_inputs, response="Feedback: {}")
+    fdbck = TextForm(
+        name="Feedback",
+        form_inputs=form_inputs,
+        response="Your feedback has been taken!",
+    )
     await interaction.response.send_modal(fdbck)
 
     async def on_callback(interaction):
@@ -144,9 +148,16 @@ async def feedback(interaction: nextcord.Interaction):
         event.set()
 
     fdbck.callback = on_callback
-
     await event.wait()
-    print(fdbck.values)
+
+    data = {}
+    data["username"] = interaction.user.name
+    data["feedback"] = fdbck.values["Feedback"]
+    data = (data,)
+
+    guild_name = interaction.guild.name
+    guild_db = GuildDatabases(guild_name)
+    guild_db.op_package("feedback", "create", data)
 
 
 # REMINDERS

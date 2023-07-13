@@ -7,7 +7,7 @@ class TextForm(nextcord.ui.Modal):
         self.items = {}
         self.form_inputs = form_inputs
         self.response = response
-        self.values = None
+        self.values = {}
 
         for f in self.form_inputs:
             self.items[f["label"]] = nextcord.ui.TextInput(
@@ -19,6 +19,7 @@ class TextForm(nextcord.ui.Modal):
             self.add_item(self.items[f["label"]])
 
     async def _callback(self, interaction: nextcord.Interaction):
-        self.values = (self.items[f["label"]].value for f in self.form_inputs)
-        resp = self.response.format(*self.values)
-        await interaction.send(resp)
+        for f in self.form_inputs:
+            self.values[f["label"]] = self.items[f["label"]].value
+
+        await interaction.send(self.response)
