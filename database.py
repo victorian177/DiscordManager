@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from BetterJSONStorage import BetterJSONStorage
 from tinydb import TinyDB, operations
 
 
@@ -18,8 +17,8 @@ class Database:
         self.name = db_name
         self._filepath = db_filepath
 
-        path = self._filepath / f"{self.name}.db"
-        self.db = TinyDB(path, access_mode="r+", storage=BetterJSONStorage)
+        path = self._filepath / f"{self.name}.json"
+        self.db = TinyDB(path)
 
     def create(self, data):
         """Creates record(s) in the database.
@@ -43,7 +42,7 @@ class Database:
         for k, v in modify_info.items():
             self.db.update(operations.set(k, v), query)
 
-    def retrieve(self, query, retrieve_info: list = None, unique: bool = True):
+    def retrieve(self, query, retrieve_info: list = [], unique: bool = True):
         """Retrieves a record from the database.
 
         Args:
@@ -79,3 +78,6 @@ class Database:
     def info(self):
         print(f"Name: {self.name}\nNumber of documents: {len(self.db)}")
         print(self.db.all())
+
+
+

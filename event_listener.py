@@ -1,5 +1,6 @@
 import logging
 import os
+from asyncio import Event
 
 import nextcord
 from dotenv import load_dotenv
@@ -8,12 +9,12 @@ from nextcord.enums import ButtonStyle
 from nextcord.ext import commands, tasks
 from nextcord.interactions import Interaction
 from nextcord.partial_emoji import PartialEmoji
+from tinydb import Query
 
 from dropdown import Dropdown
 from guild_databases import GuildDatabases
 from messages import *
 from textform import TextForm
-from asyncio import Event
 
 load_dotenv("nextcord.env")
 
@@ -34,8 +35,13 @@ handler.setFormatter(
 )
 logger.addHandler(handler)
 
+
 class FormButton(nextcord.ui.Button):
-    def __init__(self, style: ButtonStyle = ButtonStyle.secondary, label: str | None = None,):
+    def __init__(
+        self,
+        style: ButtonStyle = ButtonStyle.secondary,
+        label: str | None = None,
+    ):
         super().__init__(style=style, label=label)
 
     async def callback(self, interaction: Interaction):
@@ -43,12 +49,11 @@ class FormButton(nextcord.ui.Button):
         print("Testing...")
         return await super().callback(interaction)
 
+
 class View(nextcord.ui.View):
     def __init__(self) -> None:
-        super().__init__(timeout=5*60)
+        super().__init__(timeout=5 * 60)
         self.add_item(FormButton(label="Confirm form completion"))
-
-    
 
 
 # EVENTS
@@ -76,14 +81,19 @@ async def on_guild_join(guild: nextcord.Guild):
             await guild.text_channels[0].send(NO_SYSTEM_CHANNEL)
             await guild.text_channels[0].send(ON_GUILD_JOINED)
 
-    for member in guild.members:
-        print(f"Member: {member.name}")
-        if member.dm_channel is None and member.name != bot.user.name:
-            channel = await member.create_dm()
-            dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
-            await channel.send(dm_message)
+    guild_db = GuildDatabases(guild.name)
+    member_info_link = os.getenv("MEMBER_INFO_LINK")
 
-    _ = GuildDatabases(guild.name)
+    for member in guild.members:
+        if member.name != bot.user.name:
+            if member.dm_channel is None:
+                channel = await member.create_dm()
+                dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
+                await channel.send(dm_message)
+
+            data = Query().name == member.name
+            if guild_db.op_package(guild.name, "retrieve", data) is None:
+                await member.dm_channel.send(member_info_link, view=View())
 
 
 @bot.event
@@ -110,8 +120,37 @@ async def test(ctx):
 
 # Project
 @bot.slash_command()
-async def project_draft(ctx):
-    ...
+async def project_draft(interaction: nextcord.Interaction):
+    event = Event()
+
+    form_inputs = [{"label": "Project Draft", "placeholder": None}]
+    draft = TextForm(
+        name="Project Draft",
+        form_inputs=form_inputs,
+        response="Your project draft has been uploaded!",
+    )
+    await interaction.response.send_modal(draft)
+
+    async def on_callback(interaction):
+        await draft._callback(interaction)
+        event.set()
+
+    draft.callback = on_callback
+    await event.wait()
+
+    guild_name = interaction.guild.name
+    guild_db = GuildDatabases(guild_name)
+
+    data = {}
+    data["username"] = interaction.user.name
+    data["draft"] = draft.values["Project Draft"]
+    guild_db.op_package("project_drafts", "create", data)
+
+    data = {}
+    data["query"] = Query().username == interaction.user.name
+    data["retrieve_info"] = None
+    data["unique"] = True
+    print(guild_db.op_package("project_drafts", "retrieve", data))
 
 
 @bot.slash_command()
@@ -170,14 +209,19 @@ async def feedback(interaction: nextcord.Interaction):
     fdbck.callback = on_callback
     await event.wait()
 
+    guild_name = interaction.guild.name
+    guild_db = GuildDatabases(guild_name)
+
     data = {}
     data["username"] = interaction.user.name
     data["feedback"] = fdbck.values["Feedback"]
-    data = (data,)
-
-    guild_name = interaction.guild.name
-    guild_db = GuildDatabases(guild_name)
     guild_db.op_package("feedback", "create", data)
+
+    data = {}
+    data["query"] = Query().username == interaction.user.name
+    data["retrieve_info"] = None
+    data["unique"] = True
+    print(guild_db.op_package("feedback", "retrieve", data))
 
 
 # REMINDERS
