@@ -1,6 +1,5 @@
 import logging
 import os
-from typing import Optional, Union
 
 import nextcord
 from dotenv import load_dotenv
@@ -11,14 +10,14 @@ from nextcord.interactions import Interaction
 from nextcord.partial_emoji import PartialEmoji
 
 from dropdown import Dropdown
+from guild_databases import GuildDatabases
 from messages import *
 from textform import TextForm
-from guild_databases import GuildDatabases
 
 load_dotenv("nextcord.env")
 
 TOKEN = os.getenv("TOKEN")
-TESTING_GUILD_ID = 1124338606140563629
+TESTING_GUILD_ID = os.getenv("TESTING_GUILD_ID")
 
 intents = nextcord.Intents.default()
 intents.members = True
@@ -153,9 +152,20 @@ async def help(ctx):
 
 @bot.slash_command()
 async def feedback(interaction: nextcord.Interaction):
+    event = Event()
+
     form_inputs = [{"label": "Feedback", "placeholder": None}]
     fdbck = TextForm(name="Feedback", form_inputs=form_inputs, response="Feedback: {}")
     await interaction.response.send_modal(fdbck)
+
+    async def on_callback(interaction):
+        await fdbck._callback(interaction)
+        event.set()
+
+    fdbck.callback = on_callback
+
+    await event.wait()
+    print(fdbck.values)
 
 
 # REMINDERS
