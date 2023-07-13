@@ -8,7 +8,6 @@ class TextForm(nextcord.ui.Modal):
         self.form_inputs = form_inputs
         self.response = response
         self.values = None
-        self.done = False
 
         for f in self.form_inputs:
             self.items[f["label"]] = nextcord.ui.TextInput(
@@ -21,6 +20,5 @@ class TextForm(nextcord.ui.Modal):
 
     async def _callback(self, interaction: nextcord.Interaction):
         self.values = (self.items[f["label"]].value for f in self.form_inputs)
-        self.done = True
         resp = self.response.format(*self.values)
         await interaction.send(resp)

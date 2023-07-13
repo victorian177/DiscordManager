@@ -146,7 +146,7 @@ async def feedback(interaction: nextcord.Interaction):
     fdbck.callback = on_callback
 
     await event.wait()
-    print(fdbck.done)
+    print(fdbck.values)
 
 
 # REMINDERS
