@@ -131,8 +131,10 @@ async def help(ctx):
 
 
 @bot.slash_command()
-async def feedback(ctx):
-    ...
+async def feedback(interaction: nextcord.Interaction):
+    form_inputs = [{"label": "Feedback", "placeholder": None}]
+    fdbck = TextForm(name="Feedback", form_inputs=form_inputs, response="Feedback: {}")
+    await interaction.response.send_modal(fdbck)
 
 
 # REMINDERS
