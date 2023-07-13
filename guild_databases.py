@@ -40,6 +40,8 @@ class GuildDatabases:
         retrieve_data = None
 
         if op_name == "create":
+            if db_name == "members":
+                self.pending.members.remove(data["username"])
             self.dbs[db_name].create(data)
         elif op_name == "modify":
             self.dbs[db_name].modify(

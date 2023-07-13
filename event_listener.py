@@ -20,12 +20,15 @@ load_dotenv("nextcord.env")
 
 TOKEN = os.getenv("TOKEN")
 TESTING_GUILD_ID = os.getenv("TESTING_GUILD_ID")
+GUILD = os.getenv("GUILD")
 
 intents = nextcord.Intents.default()
 intents.members = True
 intents.message_content = True
 
 bot = commands.Bot(intents=intents)
+
+guild_db = GuildDatabases(GUILD)
 
 logger = logging.getLogger("nextcord")
 logger.setLevel(logging.DEBUG)
@@ -60,40 +63,45 @@ class View(nextcord.ui.View):
 @bot.event
 async def on_ready():
     logger.info(f"Logged in as {bot.user.name}#{bot.user.id}")
-    for g in bot.guilds:
-        _ = GuildDatabases(g.name)
+    print("Running...")
+
+    # TODO: When multiple guilds eventually get added.
+    # for g in bot.guilds:
+    #     _ = GuildDatabases(g.name)
 
 
 @bot.event
 async def on_guild_join(guild: nextcord.Guild):
-    system_channel = guild.system_channel
+    if guild.name == GUILD:
+        pending_members = []
+        system_channel = guild.system_channel
 
-    if system_channel is not None:
-        logger.info(
-            f"{bot.user.name} has joined {guild.name} and has a system channel."
-        )
-        await system_channel.send(ON_GUILD_JOINED)
-    else:
-        if guild.text_channels:
+        if system_channel is not None:
             logger.info(
-                f"{bot.user.name} has joined {guild.name} and does not a system channel."
+                f"{bot.user.name} has joined {guild.name} and has a system channel."
             )
-            await guild.text_channels[0].send(NO_SYSTEM_CHANNEL)
-            await guild.text_channels[0].send(ON_GUILD_JOINED)
+            await system_channel.send(ON_GUILD_JOINED)
+        else:
+            if guild.text_channels:
+                logger.info(
+                    f"{bot.user.name} has joined {guild.name} and does not a system channel."
+                )
+                await guild.text_channels[0].send(NO_SYSTEM_CHANNEL)
+                await guild.text_channels[0].send(ON_GUILD_JOINED)
 
-    guild_db = GuildDatabases(guild.name)
-    member_info_link = os.getenv("MEMBER_INFO_LINK")
+        member_info_link = os.getenv("MEMBER_INFO_LINK")
 
-    for member in guild.members:
-        if member.name != bot.user.name:
-            if member.dm_channel is None:
-                channel = await member.create_dm()
-                dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
-                await channel.send(dm_message)
+        for member in guild.members:
+            if member.name != bot.user.name:
+                if member.dm_channel is None:
+                    channel = await member.create_dm()
+                    dm_message = ON_MEMBER_JOINED_PRIVATE_MESSAGE.format(bot.user.name)
+                    await channel.send(dm_message)
 
-            data = Query().name == member.name
-            if guild_db.op_package(guild.name, "retrieve", data) is None:
-                await member.dm_channel.send(member_info_link, view=View())
+                data = Query().name == member.name
+                if guild_db.op_package(guild.name, "retrieve", data) is None:
+                    pending_members.append(member.name)
+                    await member.dm_channel.send(member_info_link, view=View())
 
 
 @bot.event
@@ -136,9 +144,6 @@ async def project_draft(interaction: nextcord.Interaction):
 
     draft.callback = on_callback
     await event.wait()
-
-    guild_name = interaction.guild.name
-    guild_db = GuildDatabases(guild_name)
 
     data = {}
     data["username"] = interaction.user.name
@@ -208,9 +213,6 @@ async def feedback(interaction: nextcord.Interaction):
 
     fdbck.callback = on_callback
     await event.wait()
-
-    guild_name = interaction.guild.name
-    guild_db = GuildDatabases(guild_name)
 
     data = {}
     data["username"] = interaction.user.name
