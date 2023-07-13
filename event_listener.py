@@ -1,9 +1,14 @@
 import logging
 import os
+from typing import Optional, Union
 
 import nextcord
 from dotenv import load_dotenv
+from nextcord.emoji import Emoji
+from nextcord.enums import ButtonStyle
 from nextcord.ext import commands, tasks
+from nextcord.interactions import Interaction
+from nextcord.partial_emoji import PartialEmoji
 
 from dropdown import Dropdown
 from messages import *
@@ -28,6 +33,22 @@ handler.setFormatter(
     logging.Formatter("%(asctime)s:%(levelname)s:%(name)s: %(message)s")
 )
 logger.addHandler(handler)
+
+class FormButton(nextcord.ui.Button):
+    def __init__(self, style: ButtonStyle = ButtonStyle.secondary, label: str | None = None,):
+        super().__init__(style=style, label=label)
+
+    async def callback(self, interaction: Interaction):
+        # Here the get_response function gets called
+        print("Testing...")
+        return await super().callback(interaction)
+
+class View(nextcord.ui.View):
+    def __init__(self) -> None:
+        super().__init__(timeout=5*60)
+        self.add_item(FormButton(label="Confirm form completion"))
+
+    
 
 
 # EVENTS
@@ -77,8 +98,8 @@ async def on_member_join(member: nextcord.Member):
     await channel.send(dm_message)
 
     # TODO: Unhighlight the code below when member registration form is complete
-    # member_info_link = os.getenv("MEMBER_INFO_LINK")
-    # await channel.send(member_info_link)
+    member_info_link = os.getenv("MEMBER_INFO_LINK")
+    await channel.send(member_info_link, view=View())
 
 
 # COMMANDS
