@@ -16,6 +16,7 @@ class Dropdown(nextcord.ui.View):
     async def submit(self, button, interaction):
         self.event.set()
         self.selected = self.dropdown.values[0]
+
         await interaction.response.send_message(f"You selected: {self.selected}")
 
         # Clear the view so it is removed from the message
