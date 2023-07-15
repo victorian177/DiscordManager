@@ -1,0 +1,12 @@
+{
+    "Member": [
+        "username TEXT PRIMARY KEY",
+        "name TEXT",
+        "email TEXT"
+    ],
+    "Projects": [
+        "id INTEGER PRIMARY KEY",
+        "title TEXT",
+        "draft TEXT"
+    ]
+}

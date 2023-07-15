@@ -46,8 +46,6 @@ class FormButton(nextcord.ui.Button):
         super().__init__(style=style, label=label)
 
     async def callback(self, interaction: Interaction):
-        # Here the get_response function gets called
-
         return await super().callback(interaction)
 
 
@@ -63,9 +61,8 @@ async def on_ready():
     logger.info(f"Logged in as {bot.user.name}#{bot.user.id}")
     print("Running...")
 
-    # TODO: When multiple guilds eventually get added.
-    # for g in bot.guilds:
-    #     _ = GuildDatabases(g.name)
+    for g in bot.guilds:
+        _ = GuildDatabases(g.name)
 
 
 @bot.event
