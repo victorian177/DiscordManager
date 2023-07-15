@@ -4,7 +4,7 @@ from pathlib import Path
 
 
 class Database:
-    def __init__(self, db_name, config):
+    def __init__(self, db_name):
         self.db_file = Path(f"db/{db_name}.sqlite")
         self.conn = sqlite3.connect(self.db_file)
         self.cursor = self.conn.cursor()
@@ -21,11 +21,12 @@ class Database:
         sql = "CREATE TABLE IF NOT EXISTS {table_name} ({columns})".format(
             table_name=table_name, columns=", ".join(columns)
         )
+        print(sql)
         self.cursor.execute(sql)
         self.conn.commit()
 
     def insert_row(self, table_name, values):
-        sql = "INSERT INTO {table_name} VALUES ({values})".format(
+        sql = "INSERT OR IGNORE INTO {table_name} VALUES ({values})".format(
             table_name=table_name, values=", ".join(["?" for v in values])
         )
         self.cursor.execute(sql, values)

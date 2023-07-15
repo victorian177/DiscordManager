@@ -1,12 +1,29 @@
 {
-    "Member": [
+    "Members": [
         "username TEXT PRIMARY KEY",
         "name TEXT",
-        "email TEXT"
+        "nickname TEXT",
+        "email TEXT",
+        "specialisation TEXT",
+        "university_department TEXT",
+        "data_joined DATE",
+        "cohort TEXT"
     ],
     "Projects": [
-        "id INTEGER PRIMARY KEY",
+        "id INTEGER PRIMARY KEY AUTOINCREMENT",
         "title TEXT",
-        "draft TEXT"
+        "teams TEXT"
+    ],
+    "MemberProjects": [
+        "username TEXT PRIMARY KEY",
+        "projects_team TEXT"
+    ],
+    "ProjectDrafts": [
+        "title TEXT PRIMARY KEY",
+        "summary TEXT"
+    ],
+    "Feedback": [
+        "id INTEGER PRIMARY KEY AUTOINCREMENT",
+        "feedback TEXT"
     ]
 }
