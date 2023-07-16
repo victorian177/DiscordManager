@@ -13,7 +13,7 @@ class Dropdown(nextcord.ui.View):
         self.add_item(self.dropdown)
 
     @nextcord.ui.button(label="Submit", style=nextcord.ButtonStyle.green)
-    async def submit(self, button, interaction):
+    async def submit(self, button, interaction: nextcord.Interaction):
         self.event.set()
         self.selected = self.dropdown.values[0]
 

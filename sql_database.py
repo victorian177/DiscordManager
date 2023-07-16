@@ -21,7 +21,7 @@ class Database:
         sql = "CREATE TABLE IF NOT EXISTS {table_name} ({columns})".format(
             table_name=table_name, columns=", ".join(columns)
         )
-        print(sql)
+        # print(sql)
         self.cursor.execute(sql)
         self.conn.commit()
 

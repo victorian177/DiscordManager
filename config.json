@@ -10,17 +10,13 @@
         "cohort TEXT"
     ],
     "Projects": [
-        "id INTEGER PRIMARY KEY AUTOINCREMENT",
-        "title TEXT",
+        "title TEXT PRIMARY KEY",
+        "summary TEXT",
         "teams TEXT"
     ],
     "MemberProjects": [
         "username TEXT PRIMARY KEY",
         "projects_team TEXT"
-    ],
-    "ProjectDrafts": [
-        "title TEXT PRIMARY KEY",
-        "summary TEXT"
     ],
     "Feedback": [
         "id INTEGER PRIMARY KEY AUTOINCREMENT",
