@@ -9,14 +9,17 @@
         "data_joined DATE",
         "cohort TEXT"
     ],
-    "Projects": [
+    "OngoingProjects": [
         "title TEXT PRIMARY KEY",
         "summary TEXT",
-        "teams TEXT"
+        "teams TEXT",
+        "members TEXT"
     ],
-    "MemberProjects": [
-        "username TEXT PRIMARY KEY",
-        "projects_team TEXT"
+    "CompletedProjects": [
+        "title TEXT PRIMARY KEY",
+        "summary TEXT",
+        "teams TEXT",
+        "members TEXT"
     ],
     "Feedback": [
         "id INTEGER PRIMARY KEY AUTOINCREMENT",

@@ -1,12 +1,11 @@
 import logging
 import os
-import time
-from asyncio import Event, sleep
+from asyncio import Event
 
 import nextcord
 from dotenv import load_dotenv
 from nextcord.enums import ButtonStyle
-from nextcord.ext import commands
+from nextcord.ext import commands, tasks
 from nextcord.interactions import Interaction
 
 from dropdown import Dropdown
@@ -124,13 +123,23 @@ async def on_member_join(member: nextcord.Member):
     await channel.send(linear_workspace_link)
 
 
+@bot.event
+async def on_voice_state_update(member, before, after):
+    if before.channel is None and after.channel is not None:
+        # The member joined a channel
+        print(f"{member.name} joined {after.channel.name}!")
+
+    elif before.channel is not None and after.channel is None:
+        # The member left a channel
+        print(f"{member.name} left {before.channel.name}!")
+
+
 # COMMANDS
-# @bot.slash_command()
-# async def test(interaction: nextcord.Interaction):
-#     dd = Dropdown("Hello, world!", options_list=["Python", "Java"], event=Event())
-#     await interaction.send(view=dd)
-#     await dd.event.wait()
-#     print(dd.selected)
+@bot.slash_command()
+async def test(interaction: nextcord.Interaction):
+    guild = interaction.guild
+    categories = [c for c in guild.channels if isinstance(c, nextcord.CategoryChannel)]
+    print(categories)
 
 
 # Project
@@ -169,7 +178,7 @@ async def project_create(interaction: nextcord.Interaction):
 
     guild_db = GuildDatabase(guild.name)
     guild_db.op_package(
-        "Projects",
+        "OngoingProjects",
         "insert",
         {
             "values": (
@@ -202,16 +211,18 @@ async def project_info(interaction: nextcord.Interaction):
 
     guild_db = GuildDatabase(guild.name)
     data = {"columns": "title", "where": None}
-    project_titles = guild_db.op_package("Projects", "select", data)
+    project_titles = guild_db.op_package("OngoingProjects", "select", data)
     options_list = [t[0] for t in project_titles]
 
-    dd = Dropdown("Select project...", options_list=options_list, event=Event())
+    dd_data = {"Select a project...": [options_list]}
+    dd = Dropdown(dd_data)
     await interaction.send(view=dd)
     await dd.event.wait()
 
-    data = {"columns": None, "where": f"title='{dd.selected}'"}
-    project_titles = guild_db.op_package("Projects", "select", data)
-    disp = guild_db.op_package("Projects", "select", data)
+    project_title = dd.selected[0]
+    data = {"columns": None, "where": f"title='{project_title}'"}
+    project_titles = guild_db.op_package("OngoingProjects", "select", data)
+    disp = guild_db.op_package("OngoingProjects", "select", data)
     guild_db.close()
 
     await interaction.channel.send(disp)
@@ -223,18 +234,36 @@ async def project_close(interaction: nextcord.Interaction):
 
     guild_db = GuildDatabase(guild.name)
     data = {"columns": "title", "where": None}
-    project_titles = guild_db.op_package("Projects", "select", data)
+    data = {"columns": "title", "where": None}
+    project_titles = guild_db.op_package("OngoingProjects", "select", data)
     options_list = [t[0] for t in project_titles]
 
-    dd = Dropdown("Select project...", options_list=options_list, event=Event())
+    dd_data = {
+        "Select a project...": [options_list],
+        "Reason for deletion": ["Cancelled", "Completed"],
+    }
+    dd = Dropdown(dd_data)
     await interaction.send(view=dd)
     await dd.event.wait()
 
-    guild_db.op_package("Projects", "delete", {"where": f"'title={dd.selected}'"})
+    project_title, reason = dd.selected
+
+    if reason == "Completed":
+        project_data = guild_db.op_package(
+            "OngoingProjects",
+            "select",
+            {"columns": None, "where": f"'title={project_title}'"},
+        )[0]
+
+        guild_db.op_package("CompletedProjects", "insert", project_data)
+
+    guild_db.op_package(
+        "OngoingProjects", "delete", {"where": f"'title={project_title}'"}
+    )
 
     for cat in guild.categories:
         category_to_del = None
-        if (cat.name).lower() == (dd.selected).lower():
+        if (cat.name).lower() == (project_title).lower():
             category_to_del = cat
 
         if category_to_del is not None:
@@ -245,10 +274,10 @@ async def project_close(interaction: nextcord.Interaction):
 
 
 # Members
-# @bot.slash_command(description="Resends member registration link to user.")
-# async def member_register(ctx):
-#     member_info_link = os.getenv("MEMBER_INFO_LINK")
-#     await ctx.send(member_info_link, view=View())
+@bot.slash_command(description="Resends member registration link to user.")
+async def member_register(ctx):
+    member_info_link = os.getenv("MEMBER_INFO_LINK")
+    await ctx.send(member_info_link, view=View())
 
 
 # @bot.slash_command()
@@ -267,32 +296,32 @@ async def project_close(interaction: nextcord.Interaction):
 #     ...
 
 
-# @bot.slash_command(
-#     description="Record any improvements you wil like to be seen in upcoming versions."
-# )
-# async def feedback(interaction: nextcord.Interaction):
-#     event = Event()
+@bot.slash_command(
+    description="Record any improvements you wil like to be seen in upcoming versions."
+)
+async def feedback(interaction: nextcord.Interaction):
+    event = Event()
 
-#     form_inputs = [{"label": "Feedback", "placeholder": None, "short": False}]
-#     fdbck = TextForm(
-#         name="Feedback",
-#         form_inputs=form_inputs,
-#         response="Your feedback has been taken!",
-#     )
+    form_inputs = [{"label": "Feedback", "placeholder": None, "short": False}]
+    fdbck = TextForm(
+        name="Feedback",
+        form_inputs=form_inputs,
+        response="Your feedback has been taken!",
+    )
 
-#     await interaction.response.send_modal(fdbck)
+    await interaction.response.send_modal(fdbck)
 
-#     async def on_callback(interaction):
-#         await fdbck._callback(interaction)
-#         event.set()
+    async def on_callback(interaction):
+        await fdbck._callback(interaction)
+        event.set()
 
-#     fdbck.callback = on_callback
-#     await event.wait()
+    fdbck.callback = on_callback
+    await event.wait()
 
-#     data = {}
-#     data["username"] = interaction.user.name
-#     data["feedback"] = fdbck.values["Feedback"]
-#     guild_db.op_package("feedback", "create", data)
+    guild = interaction.guild
+    guild_db = GuildDatabase(guild.name)
+    guild_db.op_package("Feedback", "insert", {"values": (fdbck.values["Feedback"])})
+    guild_db.close()
 
 
 # # REMINDERS
@@ -304,6 +333,49 @@ async def project_close(interaction: nextcord.Interaction):
 # @tasks.loop()
 # async def member_setup_reminder():
 #     ...
+
+
+@tasks.loop(hours=3)
+async def check_guilds():
+    for guild in bot.guilds:
+        guild_db = GuildDatabase(guild.name)
+        # Get all the categories in the guild
+
+        categories = guild.categories
+        for category in categories:
+            title = category.name
+            teams = []
+            members = []
+
+            print("Category:", title)
+            # Get all the channels in the category
+            channels = category.channels
+            for channel in channels:
+                # Check if the channel is a voice channel
+                if isinstance(channel, nextcord.TextChannel):
+                    print("Channel:", channel.name)
+                    if channel.name != "general":
+                        teams.append(channel.name)
+
+                    teams.append([])
+                    # Get all the members in the channel
+                    members = channel.members
+                    for member in members:
+                        print("Member:", member.name)
+                        teams[-1].append(member.name)
+
+            teams_text = ", ".join(teams)
+            per_team_members_text = [", ".join(tm) for tm in members]
+            members_text = ["; ".join(team) for team in per_team_members_text]
+
+            guild_db.op_package(
+                "OngoingProjects",
+                "update",
+                {
+                    "values": {"teams": teams_text, "members": members_text},
+                    "where": f"title={title}",
+                },
+            )
 
 
 bot.run(TOKEN)

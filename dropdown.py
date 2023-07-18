@@ -4,18 +4,23 @@ import nextcord
 
 
 class Dropdown(nextcord.ui.View):
-    def __init__(self, placeholder, options_list, event=Event()):
+    def __init__(self, dropdown_data):
         super().__init__()
-        self.selected = None
-        self.event = event
-        options = [nextcord.SelectOption(label=o) for o in options_list]
-        self.dropdown = nextcord.ui.Select(placeholder=placeholder, options=options)
-        self.add_item(self.dropdown)
+        self.selected = []
+        self.dropdowns = []
+        self.event = Event()
+        
+        for k, v in dropdown_data.items():
+            options = [nextcord.SelectOption(label=o) for o in v]
+            dropdown = nextcord.ui.Select(placeholder=k, options=options)
+            self.dropdowns.append(dropdown)
+            self.add_item(dropdown)
 
     @nextcord.ui.button(label="Submit", style=nextcord.ButtonStyle.green)
     async def submit(self, button, interaction: nextcord.Interaction):
         self.event.set()
-        self.selected = self.dropdown.values[0]
+        for dd in self.dropdowns:
+            self.selected.append(dd.values[0])
 
         await interaction.response.send_message(f"You selected: {self.selected}")
 
