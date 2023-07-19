@@ -185,6 +185,7 @@ async def project_create(interaction: nextcord.Interaction):
                 project_data.values["Project Title"],
                 project_data.values["Project Summary"],
                 project_data.values["Project Teams"],
+                "",
             )
         },
     )
@@ -213,8 +214,9 @@ async def project_info(interaction: nextcord.Interaction):
     data = {"columns": "title", "where": None}
     project_titles = guild_db.op_package("OngoingProjects", "select", data)
     options_list = [t[0] for t in project_titles]
+    print(options_list)
 
-    dd_data = {"Select a project...": [options_list]}
+    dd_data = {"Select a project...": options_list}
     dd = Dropdown(dd_data)
     await interaction.send(view=dd)
     await dd.event.wait()
@@ -239,7 +241,7 @@ async def project_close(interaction: nextcord.Interaction):
     options_list = [t[0] for t in project_titles]
 
     dd_data = {
-        "Select a project...": [options_list],
+        "Select a project...": options_list,
         "Reason for deletion": ["Cancelled", "Completed"],
     }
     dd = Dropdown(dd_data)
@@ -252,14 +254,15 @@ async def project_close(interaction: nextcord.Interaction):
         project_data = guild_db.op_package(
             "OngoingProjects",
             "select",
-            {"columns": None, "where": f"'title={project_title}'"},
+            {"columns": None, "where": f"title='{project_title}'"},
         )[0]
 
-        guild_db.op_package("CompletedProjects", "insert", project_data)
+        guild_db.op_package("CompletedProjects", "insert", {"values": project_data})
 
     guild_db.op_package(
-        "OngoingProjects", "delete", {"where": f"'title={project_title}'"}
+        "OngoingProjects", "delete", {"where": f"title='{project_title}'"}
     )
+    guild_db.close()
 
     for cat in guild.categories:
         category_to_del = None
